@@ -1,18 +1,23 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 from functools import lru_cache
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Ticket Buddy App"
-    APP_ENV: str = "development"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
     
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_HOST: str
-    DB_PORT: int
-    DB_NAME: str
+    APP_NAME: str = Field(min_length=4)
+    APP_ENV: str = Field(min_length=5)
     
-    class Config:
-        env_file = ".env"
+    DB_USER: str = Field(min_length=3)
+    DB_PASSWORD: str = Field(min_length=8)
+    DB_HOST: str = Field(min_length=3)
+    DB_PORT: int = Field(gt=1, lt=65535)
+    DB_NAME: str = Field(min_length=5)
+
     
 @lru_cache
 def get_settings():
