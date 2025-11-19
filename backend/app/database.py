@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from settings import get_settings
+from typing import Annotated
 
 settings = get_settings()
 
@@ -31,3 +32,5 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+db_dependency = Annotated[Session, Depends(get_db)]
