@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from database import engine
+from infra.database.connection import engine
 from settings import get_settings
 
 import models

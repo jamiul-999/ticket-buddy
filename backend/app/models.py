@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Numeric, Date, DateTime
 from sqlalchemy.sql import func
-from database import Base
+from infra.database.connection import Base
 
 class BookingDB(Base):
     __tablename__="bookings"
