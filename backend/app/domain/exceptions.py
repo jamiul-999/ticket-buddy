@@ -56,3 +56,25 @@ class DuplicateBooking(BookingException):
                 "bus_provider": bus_provider
             }
         )
+
+# Validation exceptions
+class ValidationException(DomainException):
+    """Base exception for validation errors"""
+
+class InvalidPhoneNumber(ValidationException):
+    """Raised when phone number is invalid"""
+
+    def __init__(self, phone: str):
+        super().__init__(
+            message=f"Invalid phone number: {phone}",
+            details={"phone": phone}
+        )
+
+class InvalidName(ValidationException):
+    """Raised when name is invalid"""
+
+    def __init__(self, name: str, reason: str = "Name too short"):
+        super().__init__(
+            message=f"Invalid name: {reason}",
+            details={"name": name}
+        )
