@@ -79,6 +79,18 @@ class InvalidName(ValidationException):
             details={"name": name}
         )
 
+class InvalidDate(ValidationException):
+    """Raised when date is invalid"""
+
+    def __init__(self, date: str, reason: str = None):
+        message = f"Invalid date: {date}"
+        if reason:
+            message += f" - {reason}"
+        super().__init__(
+            message=message,
+            details={"date": date}
+        )
+
 class InvalidPrice(ValidationException):
     """Raised when input price is invalid"""
 
