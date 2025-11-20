@@ -1,4 +1,4 @@
-"""Import necessary modules"""
+"""Booking repository"""
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.domain.entities import Booking

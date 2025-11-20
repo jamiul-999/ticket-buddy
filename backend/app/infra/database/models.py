@@ -1,4 +1,4 @@
-"""Modules providing sqlalchemy classes"""
+"""Create booking model"""
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Numeric, Date, DateTime
 from app.infra.database.connection import Base

@@ -1,4 +1,4 @@
-"""Import necessary modules"""
+"""Pydantic validation for booking model"""
 from datetime import datetime
 from pydantic import BaseModel, Field
 

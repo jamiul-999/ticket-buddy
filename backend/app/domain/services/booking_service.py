@@ -1,4 +1,4 @@
-"""Import entities and exceptions"""
+"""Booking service to create, get and cancel bookings"""
 from typing import List
 from app.domain.entities import Booking
 from app.domain.exceptions import BookingNotFound, InvalidBooking

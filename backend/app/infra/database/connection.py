@@ -1,3 +1,4 @@
+"""Create and establish database connection"""
 from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import create_engine
@@ -28,10 +29,11 @@ SessionLocal = sessionmaker(
 Base = declarative_base()
 
 def get_db():
+    """Start database"""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-        
+
 db_dependency = Annotated[Session, Depends(get_db)]
