@@ -14,7 +14,6 @@ from app.domain.exceptions import (
     InvalidDate,
     InvalidPrice,
     BookingAlreadyCanceled,
-    ValidationException,
     BookingException
 )
 
@@ -94,6 +93,25 @@ def cancel_booking(booking_id: int, db: Session = Depends(get_db)):
         repo = BookingRepository(db)
         service = BookingService(repo)
         service.cancel_booking(booking_id)
-        return {"message": "Booking cancelled"}
+        return {
+            "message": "Booking cancelled successfully",
+            "booking_id": booking_id
+            }
     except BookingNotFound as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": "Not found",
+                "message": str(e),
+                "details": e.details
+            }
+        ) from e
+    except BookingAlreadyCanceled as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Already canceled",
+                "message": str(e),
+                "details": e.details
+            }
+        ) from e
