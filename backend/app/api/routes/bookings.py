@@ -2,7 +2,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.booking import BookingResponse, BookingCreate
+from app.api.schemas.booking import BookingResponse, BookingCreate
 from app.infra.database.connection import get_db
 from app.infra.repos.booking_repo import BookingRepository
 from app.domain.services.booking_service import BookingService
