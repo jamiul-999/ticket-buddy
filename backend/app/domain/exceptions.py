@@ -1,10 +1,9 @@
+"""Exception handler"""
 class BookingNotFound(Exception):
     """Booking not found"""
-    pass
 
 class InvalidBooking(Exception):
     """Invalid booking data"""
-    pass
 
 # class RouteNotFound(Exception):
 #     """No routes found"""
