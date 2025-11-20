@@ -50,10 +50,42 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
 
 @router.get("", response_model=List[BookingResponse])
 def get_bookings(phone: str, db: Session = Depends(get_db)):
-    """Get all bookings"""
-    repo = BookingRepository(db)
-    service = BookingService(repo)
-    return service.get_bookings_by_phone(phone)
+    """Get all bookings by phone number"""
+    try:
+        repo = BookingRepository(db)
+        service = BookingService(repo)
+        return service.get_bookings_by_phone(phone)
+    except InvalidPhoneNumber as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Invalid phone number",
+                "message": str(e),
+                "details": e.details
+            }
+        ) from e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "Internal Server Error"}
+        ) from e
+
+@router.get("/{booking_id}", response_model=BookingResponse)
+def get_booking(booking_id: int, db: Session = Depends(get_db)):
+    """Get a specific booking by ID"""
+    try:
+        repo = BookingRepository(db)
+        service = BookingService(repo)
+        return service.get_booking_by_id(booking_id)
+    except BookingNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": "Not Found",
+                "message": str(e),
+                "details": e.details
+            }
+        ) from e
 
 @router.delete("/{booking_id}")
 def cancel_booking(booking_id: int, db: Session = Depends(get_db)):
