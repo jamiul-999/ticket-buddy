@@ -1,12 +1,22 @@
 """Booking route"""
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.api.schemas.booking import BookingResponse, BookingCreate
 from app.infra.database.connection import get_db
 from app.infra.repos.booking_repo import BookingRepository
 from app.domain.services.booking_service import BookingService
-from app.domain.exceptions import InvalidBooking, BookingNotFound
+from app.domain.exceptions import (
+    InvalidBooking,
+    BookingNotFound,
+    InvalidPhoneNumber,
+    InvalidName,
+    InvalidDate,
+    InvalidPrice,
+    BookingAlreadyCanceled,
+    ValidationException,
+    BookingException
+)
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
@@ -18,8 +28,25 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
         service = BookingService(repo)
         result = service.create_booking(booking.dict())
         return result
-    except InvalidBooking as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+    except (InvalidBooking, InvalidPhoneNumber, InvalidName, InvalidDate, InvalidPrice) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Validation error",
+                "message": str(e),
+                "details": e.details if hasattr(e, 'details') else {}
+            }
+        ) from e
+    except BookingException as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "Booking Error", "message": str(e)}
+        ) from e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "Internal Server Error", "message": "An unexpected error has occurred"}
+        ) from e
 
 @router.get("", response_model=List[BookingResponse])
 def get_bookings(phone: str, db: Session = Depends(get_db)):
