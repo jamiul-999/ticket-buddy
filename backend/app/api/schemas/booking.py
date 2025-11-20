@@ -24,7 +24,7 @@ class BookingResponse(BaseModel):
     to_district: str
     dropping_point: str
     price: float
-    traveL_date: str
+    travel_date: str
     travel_time: str
     booking_date: datetime
     status: str
