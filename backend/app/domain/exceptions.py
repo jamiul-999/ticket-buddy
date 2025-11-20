@@ -42,6 +42,21 @@ class BookingAlreadyCanceled(BookingException):
             details={"booking_id": booking_id, "status": "canceled"}
         )
 
+class DuplicateBooking(BookingException):
+    """Raised when there is a duplicate booking"""
+
+    def __init__(self, phone: str, travel_date: str, travel_time: str,
+                 bus_provider: str):
+        super().__init__(
+            message="Duplicated booking detected for the same coach",
+            details={
+                "phone": phone,
+                "travel_date": travel_date,
+                "travel_time": travel_time,
+                "bus_provider": bus_provider
+            }
+        )
+
 # class RouteNotFound(Exception):
 #     """No routes found"""
 #     pass
