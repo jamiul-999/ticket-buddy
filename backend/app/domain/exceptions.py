@@ -15,7 +15,7 @@ class DomainException(Exception):
 
 class BookingException(DomainException):
     """Base exception for booking-related errors"""
-    pass
+    #pass
 
 class BookingNotFound(BookingException):
     """Exception for a booking cannot be found"""
@@ -33,6 +33,14 @@ class InvalidBooking(BookingException):
         details = {"field": field} if field else {}
         super().__init__(message=message, details=details)
 
+class BookingAlreadyCanceled(BookingException):
+    "Exception for the already booked tickets"
+
+    def __init__(self, booking_id: int):
+        super().__init__(
+            message=f"Booking {booking_id} is already canceled.",
+            details={"booking_id": booking_id, "status": "canceled"}
+        )
 
 # class RouteNotFound(Exception):
 #     """No routes found"""
