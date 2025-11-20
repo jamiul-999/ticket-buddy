@@ -49,6 +49,13 @@ class BookingService:
             raise InvalidPhoneNumber(phone)
         return self.booking_repo.find_by_phone(phone)
 
+    def get_booking_by_id(self, booking_id: int) -> Booking:
+        """Get a specific booking by ID"""
+        booking = self.booking_repo.find_by_id(booking_id)
+        if not booking:
+            raise BookingNotFound(booking_id)
+        return booking
+
     def cancel_booking(self, booking_id: int) -> Booking:
         """Cancel a booking"""
         booking = self.booking_repo.find_by_id(booking_id)
