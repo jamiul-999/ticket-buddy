@@ -1,5 +1,5 @@
 """Pydantic validation for booking model"""
-from datetime import datetime
+from datetime import datetime, date
 from pydantic import BaseModel, Field
 
 class BookingCreate(BaseModel):
@@ -11,7 +11,7 @@ class BookingCreate(BaseModel):
     to_district: str
     dropping_point: str
     price: float
-    travel_date: str
+    travel_date: date
     travel_time: str
 
 class BookingResponse(BaseModel):
@@ -24,7 +24,7 @@ class BookingResponse(BaseModel):
     to_district: str
     dropping_point: str
     price: float
-    travel_date: str
+    travel_date: date
     travel_time: str
     booking_date: datetime
     status: str
