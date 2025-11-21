@@ -26,7 +26,7 @@ def search_buses(request: SearchRequest):
 @router.get("/districts")
 def get_districts():
     """Get all districts"""
-    repo = BusRepository
+    repo = BusRepository()
     service = SearchService(repo)
     return service.get_districts()
 
