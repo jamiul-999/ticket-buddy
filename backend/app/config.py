@@ -1,4 +1,5 @@
 """Settings file"""
+import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
@@ -17,6 +18,20 @@ class Settings(BaseSettings):
     DB_HOST: str = Field(min_length=3)
     DB_PORT: int = Field(gt=1, lt=65535)
     DB_NAME: str = Field(min_length=5)
+
+    BUS_DATA_PATH: str = "data/data.json"
+    PROVIDER_DOCS_PATH: str = "data/provider_docs"
+    # BUS_DATA_PATH: str = "/app/data/data.json"
+    # PROVIDER_DATA_PATH: str = "/app/data/provider_docs"
+
+    def get_absolute_path(self, relative_path: str) -> str:
+        """Convert relative path to absolute path"""
+        if os.path.isabs(relative_path):
+            return relative_path
+        # Get the project root (2 levels up from config.py)
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        return os.path.join(project_root, relative_path)
+
 
 @lru_cache
 def get_settings():
