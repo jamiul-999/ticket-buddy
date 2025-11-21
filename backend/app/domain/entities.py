@@ -1,6 +1,6 @@
 """Data entities"""
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 @dataclass
@@ -13,7 +13,7 @@ class Booking:
     to_district: str
     dropping_point: str
     price: float
-    travel_date: str
+    travel_date: date
     travel_time: str
     id: Optional[int] = None
     booking_date: Optional[datetime] = None
