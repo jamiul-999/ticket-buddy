@@ -59,6 +59,23 @@ class DuplicateBooking(BookingException):
             }
         )
 
+# Search exceptions
+class SearchException(DomainException):
+    """Base exception for search-related errors"""
+
+
+class RouteNotFound(SearchException):
+    """Raised when no routes are found for the search criteria"""
+
+    def __init__(self, from_district: str, to_district: str):
+        super().__init__(
+            message=f"No routes found from {from_district} to {to_district}",
+            details={
+                "from_district": from_district,
+                "to_district": to_district
+            }
+        )
+
 # Validation exceptions
 class ValidationException(DomainException):
     """Base exception for validation errors"""
