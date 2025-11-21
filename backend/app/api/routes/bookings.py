@@ -14,7 +14,8 @@ from app.domain.exceptions import (
     InvalidDate,
     InvalidPrice,
     BookingAlreadyCanceled,
-    BookingException
+    BookingException,
+    DuplicateBooking
 )
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
@@ -27,6 +28,15 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
         service = BookingService(repo)
         result = service.create_booking(booking.dict())
         return result
+    except DuplicateBooking as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "error": "Duplicate Booking",
+                "message": str(e),
+                "details": e.details
+            }
+        ) from e
     except (InvalidBooking, InvalidPhoneNumber, InvalidName, InvalidDate, InvalidPrice) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
