@@ -9,7 +9,8 @@ from app.domain.exceptions import (
     InvalidName,
     InvalidDate,
     InvalidPrice,
-    BookingAlreadyCanceled
+    BookingAlreadyCanceled,
+    DuplicateBooking
 )
 
 class BookingService:
@@ -35,10 +36,26 @@ class BookingService:
         if not travel_date:
             raise InvalidDate(travel_date, "Travel date is required")
 
-        required_fields = ['bus_provider', 'from_district', 'to_disctrict', 'dropping_point']
+        required_fields = ['bus_provider', 'from_district', 'to_district', 'dropping_point']
         for field in required_fields:
             if not data.get(field):
                 raise InvalidBooking(f"{field.replace('_', ' ').title()} is required", field)
+
+        if self.booking_repo.check_duplicate(
+            phone=phone,
+            travel_date=travel_date,
+            travel_time=data["travel_time"],
+            bus_provider=data["bus_provider"],
+            from_district=data["from_district"],
+            to_district=data["to_district"],
+            dropping_point=data["dropping_point"]
+        ):
+            raise DuplicateBooking(
+                phone,
+                travel_date,
+                data["travel_time"],
+                data["bus_provider"]
+            )
 
         booking = Booking(**data)
         return self.booking_repo.save(booking)
