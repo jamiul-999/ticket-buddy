@@ -1,5 +1,7 @@
 """Booking repository"""
 from typing import List, Optional
+from datetime import date
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from app.domain.entities import Booking
 from app.infra.database.models import BookingDB
@@ -49,6 +51,34 @@ class BookingRepository:
         ).all()
 
         return [self._to_entity(b) for b in db_bookings]
+
+    def check_duplicate(
+        self,
+        phone: str,
+        travel_date: date,
+        travel_time: str,
+        bus_provider: str,
+        from_district: str,
+        to_district: str,
+        dropping_point: str
+    ) -> bool:
+        """
+        Check if a booking with same details already exists.
+        Prevents duplicate bookings for same user, date, route, and provider.
+        """
+        existing = self.db.query(BookingDB).filter(
+            and_(
+                BookingDB.phone == phone,
+                BookingDB.travel_date == travel_date,
+                BookingDB.travel_time == travel_time,
+                BookingDB.bus_provider == bus_provider,
+                BookingDB.from_district == from_district,
+                BookingDB.to_district == to_district,
+                BookingDB.dropping_point == dropping_point,
+                BookingDB.status == "confirmed"
+            )
+        ).first()
+        return existing is not None
 
     def update(self, booking: Booking) -> Booking:
         """Update booking"""
