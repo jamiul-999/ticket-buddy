@@ -1,5 +1,7 @@
 """Exception handling for domain-specific exceptions"""
 
+from datetime import date
+
 class DomainException(Exception):
     """Base exception for all domain related errors"""
 
@@ -45,7 +47,7 @@ class BookingAlreadyCanceled(BookingException):
 class DuplicateBooking(BookingException):
     """Raised when there is a duplicate booking"""
 
-    def __init__(self, phone: str, travel_date: str, travel_time: str,
+    def __init__(self, phone: str, travel_date: date, travel_time: str,
                  bus_provider: str):
         super().__init__(
             message="Duplicated booking detected for the same coach",
@@ -82,13 +84,13 @@ class InvalidName(ValidationException):
 class InvalidDate(ValidationException):
     """Raised when date is invalid"""
 
-    def __init__(self, date: str, reason: str = None):
-        message = f"Invalid date: {date}"
+    def __init__(self, travel_date: date, reason: str = None):
+        message = f"Invalid date: {travel_date}"
         if reason:
             message += f" - {reason}"
         super().__init__(
             message=message,
-            details={"date": date}
+            details={"date": travel_date}
         )
 
 class InvalidPrice(ValidationException):
