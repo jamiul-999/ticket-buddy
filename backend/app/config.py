@@ -13,16 +13,19 @@ class Settings(BaseSettings):
     )
     APP_NAME: str = Field(min_length=4)
     APP_ENV: str = Field(min_length=5)
-    DB_USER: str = Field(min_length=3)
+    DB_USER: str = Field(min_length=1)
     DB_PASSWORD: str = Field(min_length=8)
-    DB_HOST: str = Field(min_length=3)
+    DB_HOST: str = Field(min_length=1)
     DB_PORT: int = Field(gt=1, lt=65535)
-    DB_NAME: str = Field(min_length=5)
+    DB_NAME: str = Field(min_length=2)
 
-    BUS_DATA_PATH: str = "data/data.json"
-    PROVIDER_DOCS_PATH: str = "data/provider_docs"
+    BUS_DATA_PATH: str = "/app/data/data.json"
+    PROVIDER_DOCS_PATH: str = "/app/data/provider_docs"
+    CHROMA_PERSIST_DIR: str = "/app/data/chroma_db"
     # BUS_DATA_PATH: str = "/app/data/data.json"
     # PROVIDER_DATA_PATH: str = "/app/data/provider_docs"
+
+    DATABASE_URL: str | None = None
 
     def get_absolute_path(self, relative_path: str) -> str:
         """Convert relative path to absolute path"""
