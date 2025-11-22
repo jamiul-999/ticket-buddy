@@ -52,6 +52,38 @@ class BookingRepository:
 
         return [self._to_entity(b) for b in db_bookings]
 
+    def find_by_details(
+        self,
+        phone: str,
+        travel_date: date,
+        travel_time: str,
+        bus_provider: str,
+        from_district: str,
+        to_district: str,
+        dropping_point: str
+    ):
+        """Find by journey details"""
+        normalized_phone = phone.replace(' ', '').replace('-', '').strip()
+        
+        db_bookings = self.db.query(BookingDB).filter(
+            and_(
+                BookingDB.phone == phone,
+                BookingDB.travel_date == travel_date,
+                BookingDB.travel_time == travel_time,
+                BookingDB.bus_provider == bus_provider,
+                BookingDB.from_district == from_district,
+                BookingDB.to_district == to_district,
+                BookingDB.dropping_point == dropping_point,
+                BookingDB.status == "confirmed"
+            )
+        ).all()
+        
+        for booking in db_bookings:
+            db_phone = booking.phone.replace(' ', '').replace('-', '').strip()
+            if db_phone == normalized_phone:
+                return self._to_entity(booking)
+        return None
+
     def check_duplicate(
         self,
         phone: str,
@@ -66,19 +98,11 @@ class BookingRepository:
         Check if a booking with same details already exists.
         Prevents duplicate bookings for same user, date, route, and provider.
         """
-        existing = self.db.query(BookingDB).filter(
-            and_(
-                BookingDB.phone == phone,
-                BookingDB.travel_date == travel_date,
-                BookingDB.travel_time == travel_time,
-                BookingDB.bus_provider == bus_provider,
-                BookingDB.from_district == from_district,
-                BookingDB.to_district == to_district,
-                BookingDB.dropping_point == dropping_point,
-                BookingDB.status == "confirmed"
-            )
-        ).first()
-        return existing is not None
+        booking = self.find_by_details(
+            phone, travel_date, travel_time, bus_provider, from_district, to_district,
+            dropping_point
+        )
+        return booking is not None
 
     def update(self, booking: Booking) -> Booking:
         """Update booking"""
