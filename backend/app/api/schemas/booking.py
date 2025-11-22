@@ -14,6 +14,16 @@ class BookingCreate(BaseModel):
     travel_date: date
     travel_time: str
 
+class BookingCancelRequest(BaseModel):
+    """Validate journey details to cancel a booking request"""
+    phone: str = Field(..., min_length=11, max_length=15)
+    travel_date: date
+    travel_time: str
+    bus_provider: str
+    from_district: str
+    to_district: str
+    dropping_point: str
+
 class BookingResponse(BaseModel):
     """Validation for booking response"""
     id: int
