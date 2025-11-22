@@ -1,6 +1,7 @@
 """Booking service to create, get and cancel bookings"""
 from typing import List
 import re
+from datetime import date
 from app.domain.entities import Booking
 from app.domain.exceptions import (
     BookingNotFound,
@@ -72,6 +73,39 @@ class BookingService:
         if not booking:
             raise BookingNotFound(booking_id)
         return booking
+
+    def cancel_booking_by_details(
+        self,
+        phone: str,
+        travel_date: date,
+        travel_time: str,
+        bus_provider: str,
+        from_district: str,
+        to_district: str,
+        dropping_point: str
+    ) -> Booking:
+        """Cancel booking by details"""
+        if not self._is_valid_phone(phone):
+            raise InvalidPhoneNumber(phone)
+
+        booking = self.booking_repo.find_by_details(
+            phone=phone,
+            travel_date=travel_date,
+            travel_time=travel_time,
+            bus_provider=bus_provider,
+            from_district=from_district,
+            to_district=to_district,
+            dropping_point=dropping_point
+        )
+
+        if not booking:
+            raise BookingNotFound(0)
+
+        if booking.status == 'canceled':
+            raise BookingAlreadyCanceled(booking.id)
+
+        booking.cancel()
+        return self.booking_repo.update(booking)
 
     def cancel_booking(self, booking_id: int) -> Booking:
         """Cancel a booking"""
