@@ -2,7 +2,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.api.schemas.booking import BookingResponse, BookingCreate
+from app.api.schemas.booking import BookingResponse, BookingCreate, BookingCancelRequest
 from app.infra.database.connection import get_db
 from app.infra.repos.booking_repo import BookingRepository
 from app.domain.services.booking_service import BookingService
@@ -57,7 +57,66 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
             detail={"error": "Internal Server Error", "message": "An unexpected error has occurred"}
         ) from e
 
-@router.get("", response_model=List[BookingResponse])
+
+@router.post("/cancel-by-details", status_code=status.HTTP_200_OK)
+def cancel_booking_by_details(
+    cancel_request: BookingCancelRequest,
+    db: Session = Depends(get_db)
+):
+    """Cancel via journey details"""
+    try:
+        repo = BookingRepository(db)
+        service = BookingService(repo)
+        canceled_booking = service.cancel_booking_by_details(
+            phone=cancel_request.phone,
+            travel_date=cancel_request.travel_date,
+            travel_time=cancel_request.travel_time,
+            bus_provider=cancel_request.bus_provider,
+            from_district=cancel_request.from_district,
+            to_district=cancel_request.to_district,
+            dropping_point=cancel_request.dropping_point
+        )
+        return {
+            "message": "Booking canceled successfully",
+            "booking_id": canceled_booking.id,
+            "details": {
+                "phone": cancel_request.phone,
+                "travel_date": cancel_request.travel_date,
+                "travel_time": cancel_request.travel_time,
+                "bus_provider": cancel_request.bus_provider,
+                "dropping_point": cancel_request.dropping_point,
+                "route": f"{cancel_request.from_district} to {cancel_request.to_district}"
+            }
+        }
+    except BookingNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": "Booking Not Found",
+                "message": "No booking found with the provided details",
+                "hint": "Please check the details again"
+            }
+        ) from e
+    except BookingAlreadyCanceled as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Already canceled",
+                "message": str(e),
+                "details": e.details
+            }
+        ) from e
+    except InvalidPhoneNumber as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Invalid Phone",
+                "message": str(e),
+                "details": e.details
+            }
+        ) from e
+
+@router.get("/by-phone", response_model=List[BookingResponse])
 def get_bookings(phone: str, db: Session = Depends(get_db)):
     """Get all bookings by phone number"""
     try:
@@ -78,6 +137,7 @@ def get_bookings(phone: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "Internal Server Error"}
         ) from e
+
 
 @router.get("/{booking_id}", response_model=BookingResponse)
 def get_booking(booking_id: int, db: Session = Depends(get_db)):
@@ -104,7 +164,7 @@ def cancel_booking(booking_id: int, db: Session = Depends(get_db)):
         service = BookingService(repo)
         service.cancel_booking(booking_id)
         return {
-            "message": "Booking cancelled successfully",
+            "message": "Booking canceled successfully",
             "booking_id": booking_id
             }
     except BookingNotFound as e:
