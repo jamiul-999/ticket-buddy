@@ -1,78 +1,141 @@
 """RAG service"""
+import re
+from app.config import get_settings
 
-from typing import Optional
-from app.domain.exceptions import (
-    ProviderNotFound,
-    ProviderInformationNotAvailable,
-    RAGQueryFailed
-)
+settings = get_settings()
 
 class RAGService:
     """Handle RAG-based queries"""
 
-    def __init__(self, provider_repo):
+    def __init__(self, provider_repo, bus_repo):
         self.provider_repo = provider_repo
-        self.route_keywords = [
-            'bus', 'route', 'price', 'taka', 'from', 'to', 'under', 'over', 
-            'cheap', 'fare', 'schedule', 'time', 'departure', 'arrival',
-            'seat', 'ticket', 'booking', 'cost', 'amount', 'district'
-        ]
+        self.bus_repo = bus_repo
 
-    def query_provider(self, query: str, provider_name: Optional[str] = None):
-        """Query provider info using RAG"""
-        if not query or len(query.strip()) < 3:
-            raise RAGQueryFailed(query, "Query must be at least 3 characters")
-
-        if provider_name and len(provider_name.strip()) < 2:
-            raise ProviderNotFound(provider_name)
-
+    def query(self, query: str) -> dict:
+        """Handle queries"""
         query_lower = query.lower()
 
-        if any(keyword in query_lower for keyword in self.route_keywords):
-            # This is a route query, not a provider info query
+        if any(word in query_lower for word in ['price', 'taka', 'fare',
+                                                'cheap', 'under', 'over', 'cost']):
+            # Price-related query
+            return self._handle_price_query(query_lower)
+
+        elif any(word in query_lower for word in ['from', 'to', 'route',
+                                                  'bus', 'between', 'travel']):
+            # Route query
+            return self._handle_route_query(query_lower)
+
+        elif any(word in query_lower for word in ['contact', 'phone', 'email',
+                                                  'address', 'details', 'reach']):
+            # Provider contact query
+            return self._handle_contact_query(query, query_lower)
+        else:
+            return self._handle_contact_query(query, query_lower)
+
+    def _handle_price_query(self, query_lower: str) -> dict:
+        """Handle price/fare queries"""
+        # Extract price if mentioned
+        price_match = re.search(r'(\d+)\s*taka', query_lower)
+        max_price = int(price_match.group(1)) if price_match else None
+
+        # Extract districts
+        districts = self.bus_repo.get_districts()
+        from_dist = None
+        to_dist = None
+
+        for dist in districts:
+            if dist.lower() in query_lower:
+                if from_dist is None:
+                    from_dist = dist
+                elif to_dist is None:
+                    to_dist = dist
+
+        if from_dist and to_dist:
+            routes = self.bus_repo.search_routes(from_dist, to_dist, max_price)
+
+            if routes:
+                route_text = f"Found {len(routes)} buses:\n"
+                for r in routes:
+                    route_text += f"- {r.provider}: {r.from_district} to {r.to_district} ({r.dropping_point}) - ৳{r.price}\n"
+
+                return {
+                    "answer": route_text,
+                    "query_type": "price_search",
+                    "results": [{"provider": r.provider, "price": r.price, "dropping_point": r.dropping_point} for r in routes]
+                }
+            else:
+                return {
+                    "answer": f"No buses found from {from_dist} to {to_dist}" + (f" under {max_price} taka" if max_price else ""),
+                    "query_type": "price_search",
+                    "results": []
+                }
+
+        return {"answer": "Please specify origin and destination districts", "query_type": "price_search"}
+
+    def _handle_route_query(self, query_lower: str) -> dict:
+        """Handle route queries"""
+        districts = self.bus_repo.get_districts()
+        from_dist = None
+        to_dist = None
+
+        for dist in districts:
+            if dist.lower() in query_lower:
+                if from_dist is None:
+                    from_dist = dist
+                elif to_dist is None:
+                    to_dist = dist
+
+        if from_dist and to_dist:
+            routes = self.bus_repo.search_routes(from_dist, to_dist)
+            providers = list(set([r.provider for r in routes]))
+
+            if providers:
+                answer = f"Bus providers from {from_dist} to {to_dist}: {', '.join(providers)}"
+                return {
+                    "answer": answer,
+                    "query_type": "route_search",
+                    "providers": providers,
+                    "routes": [{"provider": r.provider, "price": r.price} for r in routes]
+                }
+            else:
+                return {
+                    "answer": f"No buses found from {from_dist} to {to_dist}",
+                    "query_type": "route_search"
+                }
+
+        return {"answer": "Please specify origin and destination", "query_type": "route_search"}
+
+    def _handle_contact_query(self, query: str, query_lower: str) -> dict:
+        """Handle provider contact queries using vector search"""
+        # Extract provider name if mentioned
+        providers = [p['name'] for p in self.bus_repo.get_providers()]
+        provider_name = None
+
+        for prov in providers:
+            if prov.lower() in query_lower:
+                provider_name = prov
+                break
+
+        # Use semantic search
+        results = self.provider_repo.semantic_search(query, provider_name, k=1)
+
+        if results:
+            top = results[0]
+            contact = top['contact_info']
+
+            answer = f"{contact['provider']} Contact Details:\n"
+            if contact.get('phone'):
+                answer += f"Phone: {contact['phone']}\n"
+            if contact.get('email'):
+                answer += f"Email: {contact['email']}\n"
+            if contact.get('address'):
+                answer += f"Address: {contact['address']}\n"
+            if contact.get('website'):
+                answer += f"Website: {contact['website']}\n"
+
             return {
-                "error": "Wrong endpoint",
-                "message": "This question is about bus routes and prices. Please use the search endpoint instead.",
-                "correct_endpoint": "POST /api/search",
-                "example": {
-                    "from_district": "Dhaka",
-                    "to_district": "Rajshahi",
-                    "max_price": 500
-                },
-                "hint": "Use /api/providers/query only for provider contact information (phone, email, address)"
+                "answer": answer.strip(),
+                "query_type": "provider_contact",
+                "contact_info": contact
             }
-
-        try:
-            results = self.provider_repo.semantic_search(query, provider_name)
-
-            if not results:
-                if provider_name:
-                    raise ProviderInformationNotAvailable(provider_name)
-                else:
-                    raise RAGQueryFailed(query, "No relevant information found")
-
-            top_result = results[0]
-
-            return {
-                "answer": top_result.get('contact_info', {}),
-                "provider": top_result['provider'],
-                "confidence": abs(top_result['similarity']),
-                "sources": results[:3]
-            }
-        except (ProviderNotFound, ProviderInformationNotAvailable, RAGQueryFailed):
-            raise
-        except Exception as e:
-            raise RAGQueryFailed(query, f"Unexpected error: {str(e)}")
-
-    def get_provider_info(self, provider_name: str) -> dict:
-        """Get specific provider details"""
-        if not provider_name or len(provider_name.strip()) < 2:
-            raise ProviderNotFound(provider_name)
-
-        try:
-            return self.query_provider(
-                "contact information address phone email website",
-                provider_name
-            )
-        except RAGQueryFailed:
-            raise ProviderInformationNotAvailable(provider_name)
+        return {"answer": "Provider information not found", "query_type": "provider_contact"}
