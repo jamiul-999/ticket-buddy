@@ -134,3 +134,24 @@ class ProviderNotFound(ProviderException):
             message=f"Provider '{provider_name}' not found",
             details={"provider_name": provider_name}
         )
+
+class ProviderInformationNotAvailable(ProviderException):
+    """Raised when provider information cannot be retrieved"""
+
+    def __init__(self, provider_name: str):
+        super().__init__(
+            message=f"Information not available for provider '{provider_name}'",
+            details={"provider_name": provider_name}
+        )
+
+class RAGQueryFailed(ProviderException):
+    """Raised when RAG query fails"""
+
+    def __init__(self, query: str, reason: str = None):
+        details = {"query": query}
+        if reason:
+            details["reason"] = reason
+        super().__init__(
+            message="RAG query failed",
+            details=details
+        )
