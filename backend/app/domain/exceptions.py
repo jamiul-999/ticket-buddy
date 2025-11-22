@@ -121,3 +121,16 @@ class InvalidPrice(ValidationException):
             message=message,
             details={"price": price}
         )
+
+class ProviderException(DomainException):
+    """Base exception for provider-related errors"""
+
+
+class ProviderNotFound(ProviderException):
+    """Raised when a provider is not found"""
+
+    def __init__(self, provider_name: str):
+        super().__init__(
+            message=f"Provider '{provider_name}' not found",
+            details={"provider_name": provider_name}
+        )
