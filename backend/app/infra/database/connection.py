@@ -4,13 +4,18 @@ from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.engine.url import URL
 from app.config import get_settings
 
 settings = get_settings()
 
-DATABASE_URL = (
-    f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}"
-    f"@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+DATABASE_URL = URL.create(
+    drivername="postgresql",
+    username=settings.DB_USER,
+    password=settings.DB_PASSWORD,
+    host=settings.DB_HOST,
+    port=settings.DB_PORT,
+    database=settings.DB_NAME,
 )
 
 engine = create_engine(
