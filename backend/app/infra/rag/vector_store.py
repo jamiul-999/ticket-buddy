@@ -1,9 +1,10 @@
 """Store vector embeddings"""
 from typing import List, Optional
 import os
-from langchain_community.vectorstores import Chroma
+#from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_community.docstore.document import Document
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from app.config import get_settings
 
 settings = get_settings()
@@ -61,7 +62,6 @@ class VectorStoreService:
 
         if documents:
             self.vector_store.add_documents(documents)
-            self.vector_store.persist()
             print(f"Indexed {len(documents)} documents!")
 
     def similarity_search(
