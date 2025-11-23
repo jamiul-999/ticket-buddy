@@ -27,8 +27,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str | None = None
 
-    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    EMBEDDING_DIM: int = 384
+    #EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
+    EMBEDDING_MODEL: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+    EMBEDDING_DIM: int = 768
     CHROMA_PERSIST_DIR: str = "/app/data/chroma_db"
 
     def get_absolute_path(self, relative_path: str) -> str:
