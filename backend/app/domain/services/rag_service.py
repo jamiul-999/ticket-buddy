@@ -323,7 +323,7 @@ class RAGService:
             "available_providers": self.provider_names,
             "available_districts": self.districts
         }
-    
+
     # Helper methods
     def _extract_provider_name(self, query: str) -> Optional[str]:
         """Extract provider name from query"""
@@ -351,7 +351,7 @@ class RAGService:
         """Extract price constraint"""
         price_match = re.search(r'(\d+)\s*taka', query)
         return int(price_match.group(1)) if price_match else None
-    
+
     def _extract_date(self, query: str) -> Optional[str]:
         """Extract date information"""
         date_match = re.search(
@@ -359,14 +359,14 @@ class RAGService:
             query
         )
         return date_match.group(0) if date_match else None
-    
+
     def _no_results_response(self, provider_name: Optional[str]) -> Dict:
         """Response when RAG finds no results"""
         if provider_name:
             answer = f"No information found for {provider_name}."
         else:
             answer = "No matching information found. Please specify a provider."
-        
+
         return {
             "answer": answer + f"\n\nAvailable providers: {', '.join(self.provider_names)}",
             "query_type": "provider_info_rag",
