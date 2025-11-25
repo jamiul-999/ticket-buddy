@@ -1,19 +1,19 @@
 import { apiClient } from './client';
-import { SearchRequest, SearchResponse, District } from '../types/search';
+import { RouteResponse, SearchRequest } from '../types/search';
 
 export const searchApi = {
-  searchBuses: async (request: SearchRequest): Promise<SearchResponse> => {
-    const response = await apiClient.post('/search', request);
+  searchBuses: async (params: SearchRequest): Promise<RouteResponse[]> => {
+    const response = await apiClient.post<RouteResponse[]>('/api/search', params);
     return response.data;
   },
 
-  getDistricts: async (): Promise<District[]> => {
-    const response = await apiClient.get('/search/districts');
+  getDistricts: async (): Promise<string[]> => {
+    const response = await apiClient.get<string[]>('/api//search/districts');
     return response.data;
   },
 
   getProviders: async (): Promise<string[]> => {
-    const response = await apiClient.get('/search/providers');
+    const response = await apiClient.get<string[]>('/api/search/providers');
     return response.data;
   },
 };
