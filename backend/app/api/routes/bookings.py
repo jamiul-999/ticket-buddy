@@ -139,49 +139,49 @@ def get_bookings(phone: str, db: Session = Depends(get_db)):
         ) from e
 
 
-@router.get("/{booking_id}", response_model=BookingResponse)
-def get_booking(booking_id: int, db: Session = Depends(get_db)):
-    """Get a specific booking by ID"""
-    try:
-        repo = BookingRepository(db)
-        service = BookingService(repo)
-        return service.get_booking_by_id(booking_id)
-    except BookingNotFound as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={
-                "error": "Not Found",
-                "message": str(e),
-                "details": e.details
-            }
-        ) from e
+# @router.get("/{booking_id}", response_model=BookingResponse)
+# def get_booking(booking_id: int, db: Session = Depends(get_db)):
+#     """Get a specific booking by ID"""
+#     try:
+#         repo = BookingRepository(db)
+#         service = BookingService(repo)
+#         return service.get_booking_by_id(booking_id)
+#     except BookingNotFound as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail={
+#                 "error": "Not Found",
+#                 "message": str(e),
+#                 "details": e.details
+#             }
+#         ) from e
 
-@router.delete("/{booking_id}")
-def cancel_booking(booking_id: int, db: Session = Depends(get_db)):
-    """Cancel a booking"""
-    try:
-        repo = BookingRepository(db)
-        service = BookingService(repo)
-        service.cancel_booking(booking_id)
-        return {
-            "message": "Booking canceled successfully",
-            "booking_id": booking_id
-            }
-    except BookingNotFound as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={
-                "error": "Not found",
-                "message": str(e),
-                "details": e.details
-            }
-        ) from e
-    except BookingAlreadyCanceled as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "error": "Already canceled",
-                "message": str(e),
-                "details": e.details
-            }
-        ) from e
+# @router.delete("/{booking_id}")
+# def cancel_booking(booking_id: int, db: Session = Depends(get_db)):
+#     """Cancel a booking"""
+#     try:
+#         repo = BookingRepository(db)
+#         service = BookingService(repo)
+#         service.cancel_booking(booking_id)
+#         return {
+#             "message": "Booking canceled successfully",
+#             "booking_id": booking_id
+#             }
+#     except BookingNotFound as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail={
+#                 "error": "Not found",
+#                 "message": str(e),
+#                 "details": e.details
+#             }
+#         ) from e
+#     except BookingAlreadyCanceled as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail={
+#                 "error": "Already canceled",
+#                 "message": str(e),
+#                 "details": e.details
+#             }
+#         ) from e
