@@ -10,8 +10,6 @@ interface BookingFormProps {
     from: string;
     to: string;
     droppingPoint: string;
-    travel_date: string;
-    travel_time: string;
     price: number;
   };
   onSubmit: (booking: BookingCreate) => Promise<boolean>;
@@ -67,7 +65,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       dropping_point: initialData.droppingPoint,
       price: initialData.price,
       travel_date: formData.travel_date,
-      travel_time: initialData.travel_time,
+      travel_time: "08:00 AM",
     });
 
     setLoading(false);
@@ -134,7 +132,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           min={new Date().toISOString().split('T')[0]}
         />
 
-        
+
 
         <div className="flex gap-4">
           <Button type="submit" loading={loading} className="flex-1">
