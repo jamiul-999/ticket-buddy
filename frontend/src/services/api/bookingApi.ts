@@ -8,11 +8,11 @@ export const bookingApi = {
   },
   
   cancel: async (request: CancelBookingRequest): Promise<void> => {
-    await apiClient.post('/bookings/cancel-by-details', request);
+    await apiClient.post('/api/bookings/cancel-by-details', request);
   },
 
   getBookingsByPhone: async (phone: string): Promise<BookingResponse[]> => {
-    const response = await apiClient.get(`/bookings?phone=${encodeURIComponent(phone)}`);
+    const response = await apiClient.get(`/api/bookings?phone=${encodeURIComponent(phone)}`);
     return response.data;
   },
 
