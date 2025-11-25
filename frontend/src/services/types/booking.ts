@@ -1,4 +1,4 @@
-export interface BookingCreateRequest {
+export interface BookingCreate {
   name: string;
   phone: string;
   bus_provider: string;
