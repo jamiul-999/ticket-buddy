@@ -16,7 +16,7 @@ export interface QueryResponse {
 export interface RouteResult {
   provider: string;
   price: number;
-  dropping_point?: string;
+  dropping_point: string;
 }
 
 export interface RouteInfo {
