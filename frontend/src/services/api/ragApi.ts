@@ -1,9 +1,9 @@
 import { apiClient } from './client';
-import { RagQueryRequest, RagQueryResponse } from '../types/rag';
+import { QueryRequest, QueryResponse } from '../types/query';
 
 export const ragApi = {
-  query: async (request: RagQueryRequest): Promise<RagQueryResponse> => {
-    const response = await apiClient.post('/query', request);
+  query: async (request: QueryRequest): Promise<QueryResponse> => {
+    const response = await apiClient.post<QueryResponse>('/api/query', request);
     return response.data;
   },
 };
