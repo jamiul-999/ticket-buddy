@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from app.infra.rag.vector_store import VectorStoreService
 from app.infra.repos.provider_repo import ProviderRepository
+from app.infra.repos.bus_repo import BusRepository
 from app.domain.services.rag_service import RAGService
 from app.api.schemas.provider import ProviderQuery, ProviderResponse
 from app.domain.exceptions import (
@@ -27,13 +28,30 @@ def get_provider_repo() -> ProviderRepository:
 
     return _provider_repo
 
+def get_bus_repo() -> BusRepository:
+    """Initialize bus repo"""
+    global _bus_repo
+
+    if _bus_repo is None:
+        _bus_repo = BusRepository()
+
+    return _bus_repo
+
+def get_rag_service(
+    provider_repo: ProviderRepository = Depends(get_provider_repo),
+    bus_repo: BusRepository = Depends(get_bus_repo)
+) -> RAGService:
+    """Provide RAG service with initialized repos"""
+    return RAGService(provider_repo, bus_repo)
+
 @router.post("/query", response_model=ProviderResponse)
-def query_provider(query: ProviderQuery):
+def query_provider(
+    query: ProviderQuery,
+    service: RAGService = Depends(get_rag_service)
+):
     """Query provider information using langchain RAG"""
     try:
-        repo = get_provider_repo()
-        service = RAGService(repo)
-        return service.query_provider(query.query, query.provider_name)
+        return service.query(query.query)
     except ProviderNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -76,12 +94,17 @@ def query_provider(query: ProviderQuery):
         ) from e
 
 @router.get("/{provider_name}")
-def get_provider(provider_name: str):
+def get_provider(
+    provider_name: str,
+    provider_repo: ProviderRepository = Depends(get_provider_repo)
+):
     """Get provider details using langchain RAG"""
     try:
-        repo = get_provider_repo()
-        service = RAGService(repo)
-        return service.get_provider_info(provider_name)
+        result = provider_repo.get_provider(provider_name)
+        if not result:
+            raise ProviderNotFound(provider_name)
+        return result
+
     except (ProviderNotFound, ProviderInformationNotAvailable) as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
