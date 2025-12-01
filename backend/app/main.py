@@ -4,11 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.infra.database.connection import engine
 from app.infra.database import models
 from app.api.routes import bookings, search, providers, rag
+from app.middleware.logger import LoggerMiddleware
 
 app = FastAPI()
 
 
 models.Base.metadata.create_all(engine)
+
+app.add_middleware(LoggerMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,7 +24,7 @@ app.add_middleware(
 app.include_router(bookings.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(providers.router, prefix="/api")
-app.include_router(rag.router, prefix="/api") 
+app.include_router(rag.router, prefix="/api")
 
 @app.get("/health")
 def health():
