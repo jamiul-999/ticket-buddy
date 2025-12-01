@@ -1,5 +1,7 @@
 """Enhanced RAG service with better query understanding"""
 import re
+from functools import lru_cache
+from hashlib import md5
 from typing import Dict, Optional, List
 from app.config import get_settings
 
@@ -15,6 +17,7 @@ class RAGService:
         # Cache providers for faster lookups
         self._provider_names_cache = None
         self._districts_cache = None
+        self._query_cache = {}
 
     @property
     def provider_names(self) -> List[str]:
@@ -41,20 +44,30 @@ class RAGService:
         """
         query = query.lower()
 
+        cache_key = md5(query.encode()).hexdigest()
+
+        if cache_key in self._query_cache:
+            result = self._query_cache[cache_key]
         # 1. Cancellation queries
         if self._is_cancellation_query(query):
-            return self._handle_cancellation_query(query)
+            result = self._handle_cancellation_query(query)
 
         # 2. Provider information queries (USE RAG)
         if self._is_provider_info_query(query):
-            return self._handle_rag_contact_query(query)
+            result = self._handle_rag_contact_query(query)
 
         # 3. Route/price queries (USE DATABASE)
         if self._is_route_query(query):
-            return self._handle_route_query(query)
+            result = self._handle_route_query(query)
 
         # 4. Default: Try RAG first, then inform user
-        return self._handle_ambiguous_query(query)
+        else:
+            result = self._handle_ambiguous_query(query)
+        
+        if len(self._query_cache) > 100:
+            self._query_cache.pop(next(iter(self._query_cache)))
+        self._query_cache[cache_key] = result
+        return result
 
     def _is_cancellation_query(self, query: str) -> bool:
         """Detect cancellation intent"""
@@ -102,7 +115,7 @@ class RAGService:
             results = self.provider_repo.semantic_search(
                 query=query,
                 provider_name=provider_name,
-                k=3  # Get top 3 most relevant chunks
+                k=3  # Get top 3 most relevant chunks;
             )
 
             if not results:
