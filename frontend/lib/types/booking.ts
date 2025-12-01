@@ -3,6 +3,7 @@ export interface BookingCreate {
     phone: string;
     bus_provider: string;
     from_district: string;
+    to_district: string;
     dropping_point: string;
     price: number;
     travel_date: string;
